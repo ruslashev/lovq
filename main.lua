@@ -70,8 +70,27 @@ function vec_sub(vec1, vec2)
   , vec1[4] - vec2[4] }
 end
 
+function vec_cross(vec1, vec2)
+  return { vec1[2]*vec2[3] - vec2[2]*vec1[3]
+  , vec1[3]*vec2[1] - vec2[3]*vec1[1]
+  , vec1[1]*vec2[2] - vec2[1]*vec1[2] }
+end
+
 function lookAt(eye, center, up)
+  up = vec_normalize(up)
   local f = vec_normalize(vec_sub(center, eye))
+  local s = vec_normalize(vec_cross(f, up))
+  local u = vec_cross(s, f)
+  local a = dot_product(s, eye)
+  local b = dot_product(u, eye)
+  local c = dot_product(f, eye)
+  local M = {
+    {  s[1],  s[2],  s[3],   0 },
+    {  u[1],  u[2],  u[3],   0 },
+    { -f[1], -f[2], -f[3],   0 },
+    {    -a,    -b,     c,   1 },
+  }
+  return M
 end
 
 function love.load()
