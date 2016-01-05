@@ -84,6 +84,7 @@ function lookAt(eye, center, up)
   }
 end
 
+--[[
 function perspective(fovy, aspect, znear, zfar)
   local tan_half_fovy = math.tan(fovy / 2)
   local a = 1 / (aspect * tan_half_fovy)
@@ -97,6 +98,19 @@ function perspective(fovy, aspect, znear, zfar)
     { 0, 0, d, 0 }
   }
 end
+]]
+
+function perspective(fovy, aspect, znear, zfar)
+  local f = 1 / math.tan(fovy / 2)
+  local a = (zfar + znear) / (znear - zfar)
+  local b = (2 * zfar * znear) / (znear - zfar)
+  return {
+    { f/aspect, 0,  0,  0 },
+    { 0,        f,  0,  0 },
+    { 0,        0,  a,  b },
+    { 0,        0, -1,  0 }
+  }
+end
 
 local wind_width = 800
 local wind_height = 600
@@ -108,10 +122,10 @@ ply = {
 }
 
 local cube = {
-  {0, 0},
-  {1, 0},
-  {1, 1},
-  {0, 1}
+  {-0.5, -0.5},
+  { 0.5, -0.5},
+  { 0.5,  0.5},
+  {-0.5,  0.5}
 }
 
 local t = 0
@@ -124,17 +138,20 @@ function love.update(dt)
   end
 
   v = {0, 0, 0, 0}
-  view = lookAt({0, math.sin(t), -3, 1}, {0, 0, 0, 1}, {0, 1, 0, 0})
+  view = lookAt({math.cos(t), (1 + math.sin(2*t))/2, math.sin(t), 1}, {0, 0, 0, 0}, {0, 1, 0, 0})
   projection = perspective(90, 800/600, 0.1, 100)
-  mvp = mat_mat_mult(view, projection)
+  mvp = mat_mat_mult(projection, view)
 end
 
 function love.draw()
+  love.graphics.setColor(255, 0, 0)
+  love.graphics.circle("fill", wind_width/2, wind_height/2, 2, 5)
+  love.graphics.setColor(255, 255, 255)
   for _,v in ipairs(cube) do
     vx = {v[1], v[2], 0, 1}
     v_s = mat_vec_mult(mvp, vx)
-    -- print(v_s[1], v_s[2], v_s[3], v_s[4])
-    love.graphics.points(wind_width/2 + v_s[1]*100, wind_height/2 + v_s[2]*100)
+    love.graphics.points(wind_width/2 + (-v_s[1])*wind_width/2, wind_height/2 + (-v_s[2])*wind_height/2)
+    print(v_s[3])
   end
 end
 
