@@ -98,6 +98,9 @@ function perspective(fovy, aspect, znear, zfar)
   }
 end
 
+local wind_width = 800
+local wind_height = 600
+
 ply = {
   x = 0,
   y = 0,
@@ -105,6 +108,10 @@ ply = {
 }
 
 local cube = {
+  {0, 0},
+  {1, 0},
+  {1, 1},
+  {0, 1}
 }
 
 local t = 0
@@ -120,12 +127,15 @@ function love.update(dt)
   view = lookAt({0, math.sin(t), -3, 1}, {0, 0, 0, 1}, {0, 1, 0, 0})
   projection = perspective(90, 800/600, 0.1, 100)
   mvp = mat_mat_mult(view, projection)
-  v_s = mat_vec_mult(mvp, v)
-  print(v_s[1], v_s[2], v_s[3], v_s[4])
 end
 
 function love.draw()
-
+  for _,v in ipairs(cube) do
+    vx = {v[1], v[2], 0, 1}
+    v_s = mat_vec_mult(mvp, vx)
+    -- print(v_s[1], v_s[2], v_s[3], v_s[4])
+    love.graphics.points(wind_width/2 + v_s[1]*100, wind_height/2 + v_s[2]*100)
+  end
 end
 
 -- vim: et:sw=2
