@@ -39,10 +39,10 @@ function mat_mat_mult(mat1, mat2)
       dot_product(mat1[3], { mat2[1][3], mat2[2][3], mat2[3][3], mat2[4][3] }),
       dot_product(mat1[3], { mat2[1][4], mat2[2][4], mat2[3][4], mat2[4][4] })
     }, {
-      dot_product(mat1[3], { mat2[1][1], mat2[2][1], mat2[3][1], mat2[4][1] }),
-      dot_product(mat1[3], { mat2[1][2], mat2[2][2], mat2[3][2], mat2[4][2] }),
-      dot_product(mat1[3], { mat2[1][3], mat2[2][3], mat2[3][3], mat2[4][3] }),
-      dot_product(mat1[3], { mat2[1][4], mat2[2][4], mat2[3][4], mat2[4][4] })
+      dot_product(mat1[4], { mat2[1][1], mat2[2][1], mat2[3][1], mat2[4][1] }),
+      dot_product(mat1[4], { mat2[1][2], mat2[2][2], mat2[3][2], mat2[4][2] }),
+      dot_product(mat1[4], { mat2[1][3], mat2[2][3], mat2[3][3], mat2[4][3] }),
+      dot_product(mat1[4], { mat2[1][4], mat2[2][4], mat2[3][4], mat2[4][4] })
     } }
 end
 
