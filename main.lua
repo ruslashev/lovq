@@ -1,12 +1,3 @@
-map = {
-  {0, 2}
-}
-ply = {
-  x = 0,
-  y = 0,
-  angle = 0
-}
-
 function dot_product(vec1, vec2)
   return vec1[1] * vec2[1]
   + vec1[2] * vec2[2]
@@ -73,7 +64,8 @@ end
 function vec_cross(vec1, vec2)
   return { vec1[2]*vec2[3] - vec2[2]*vec1[3]
   , vec1[3]*vec2[1] - vec2[3]*vec1[1]
-  , vec1[1]*vec2[2] - vec2[1]*vec1[2] }
+  , vec1[1]*vec2[2] - vec2[1]*vec1[2]
+  , 0 }
 end
 
 function lookAt(eye, center, up)
@@ -84,29 +76,56 @@ function lookAt(eye, center, up)
   local a = dot_product(s, eye)
   local b = dot_product(u, eye)
   local c = dot_product(f, eye)
-  local M = {
+  return {
     {  s[1],  s[2],  s[3],   0 },
     {  u[1],  u[2],  u[3],   0 },
     { -f[1], -f[2], -f[3],   0 },
-    {    -a,    -b,     c,   1 },
+    {    -a,    -b,     c,   1 }
   }
-  return M
 end
 
-function love.load()
-  vec = {1, 1, 1, 1}
-  vec = vec_normalize(vec)
-  print(vec[1], vec[2], vec[3], vec[4])
+function perspective(fovy, aspect, znear, zfar)
+  local tan_half_fovy = math.tan(fovy / 2)
+  local a = 1 / (aspect * tan_half_fovy)
+  local b = 1 / tan_half_fovy
+  local c = - (zfar + znear) / (zfar - znear)
+  local d = - (2 * zfar * znear) / (zfar - znear)
+  return {
+    { a, 0, 0, 0 },
+    { 0, b, 0, 0 },
+    { 0, 0, c, 0 },
+    { 0, 0, d, 0 }
+  }
 end
+
+ply = {
+  x = 0,
+  y = 0,
+  angle = 0
+}
+
+local cube = {
+}
+
+local t = 0
+local mvp
 
 function love.update(dt)
+  t = t + dt
   if love.keyboard.isDown("q") then
     love.event.push("quit")
   end
+
+  v = {0, 0, 0, 0}
+  view = lookAt({0, math.sin(t), -3, 1}, {0, 0, 0, 1}, {0, 1, 0, 0})
+  projection = perspective(90, 800/600, 0.1, 100)
+  mvp = mat_mat_mult(view, projection)
+  v_s = mat_vec_mult(mvp, v)
+  print(v_s[1], v_s[2], v_s[3], v_s[4])
 end
 
 function love.draw()
-  love.graphics.print('Hello World!', 400, 300)
+
 end
 
 -- vim: et:sw=2
