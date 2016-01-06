@@ -84,7 +84,6 @@ function lookAt(eye, center, up)
   }
 end
 
---[[
 function perspective(fovy, aspect, znear, zfar)
   local tan_half_fovy = math.tan(fovy / 2)
   local a = 1 / (aspect * tan_half_fovy)
@@ -98,8 +97,8 @@ function perspective(fovy, aspect, znear, zfar)
     { 0, 0, d, 0 }
   }
 end
-]]
 
+--[[
 function perspective(fovy, aspect, znear, zfar)
   local f = 1 / math.tan(fovy / 2)
   local a = (zfar + znear) / (znear - zfar)
@@ -110,6 +109,11 @@ function perspective(fovy, aspect, znear, zfar)
     { 0,        0,  a,  b },
     { 0,        0, -1,  0 }
   }
+end
+]]
+
+function vec_scalar_divide(vec, scalar)
+  return { vec[1] / scalar, vec[2] / scalar, vec[3] / scalar, vec[4] / scalar }
 end
 
 local wind_width = 800
@@ -137,8 +141,7 @@ function love.update(dt)
     love.event.push("quit")
   end
 
-  v = {0, 0, 0, 0}
-  view = lookAt({math.cos(t), (1 + math.sin(2*t))/2, math.sin(t), 1}, {0, 0, 0, 0}, {0, 1, 0, 0})
+  view = lookAt({math.cos(t), 0, math.sin(t), 1}, {0, 0, 0, 1}, {0, 1, 0, 0})
   projection = perspective(90, 800/600, 0.1, 100)
   mvp = mat_mat_mult(projection, view)
 end
@@ -150,8 +153,13 @@ function love.draw()
   for _,v in ipairs(cube) do
     vx = {v[1], v[2], 0, 1}
     v_s = mat_vec_mult(mvp, vx)
-    love.graphics.points(wind_width/2 + (-v_s[1])*wind_width/2, wind_height/2 + (-v_s[2])*wind_height/2)
-    print(v_s[3])
+    -- print(v_s[1], v_s[2], v_s[3], v_s[4])
+    v_s = vec_scalar_divide(v_s, v_s[4])
+    -- print(v_s[1], v_s[2], v_s[3], v_s[4])
+
+    love.graphics.points(wind_width*(v_s[1]+1)/2, wind_height*(v_s[2]+1)/2)
+    print(wind_width*(v_s[1]+1)/2, wind_height*(v_s[2]+1)/2)
+    -- love.graphics.points(wind_width/2 + (-v_s[1])*wind_width, wind_height/2 + (-v_s[2])*wind_height)
   end
 end
 
