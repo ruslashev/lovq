@@ -77,28 +77,13 @@ function lookAt(eye, center, up)
   local b = dot_product(u, eye)
   local c = dot_product(f, eye)
   return {
-    {  s[1],  s[2],  s[3],   0 },
-    {  u[1],  u[2],  u[3],   0 },
-    { -f[1], -f[2], -f[3],   0 },
-    {    -a,    -b,     c,   1 }
+    {  s[1],  s[2],  s[3],  -a },
+    {  u[1],  u[2],  u[3],  -b },
+    { -f[1], -f[2], -f[3],   c },
+    {     0,     0,     0,   1 }
   }
 end
 
-function perspective(fovy, aspect, znear, zfar)
-  local tan_half_fovy = math.tan(fovy / 2)
-  local a = 1 / (aspect * tan_half_fovy)
-  local b = 1 / tan_half_fovy
-  local c = - (zfar + znear) / (zfar - znear)
-  local d = - (2 * zfar * znear) / (zfar - znear)
-  return {
-    { a, 0, 0, 0 },
-    { 0, b, 0, 0 },
-    { 0, 0, c, 0 },
-    { 0, 0, d, 0 }
-  }
-end
-
---[[
 function perspective(fovy, aspect, znear, zfar)
   local f = 1 / math.tan(fovy / 2)
   local a = (zfar + znear) / (znear - zfar)
@@ -110,7 +95,6 @@ function perspective(fovy, aspect, znear, zfar)
     { 0,        0, -1,  0 }
   }
 end
-]]
 
 function vec_scalar_divide(vec, scalar)
   return { vec[1] / scalar, vec[2] / scalar, vec[3] / scalar, vec[4] / scalar }
@@ -118,12 +102,6 @@ end
 
 local wind_width = 800
 local wind_height = 600
-
-ply = {
-  x = 0,
-  y = 0,
-  angle = 0
-}
 
 local cube = {
   {-0.5, -0.5},
@@ -141,25 +119,26 @@ function love.update(dt)
     love.event.push("quit")
   end
 
-  view = lookAt({math.cos(t), 0, math.sin(t), 1}, {0, 0, 0, 1}, {0, 1, 0, 0})
-  projection = perspective(90, 800/600, 0.1, 100)
+  local dist = 1
+  view = lookAt({dist*math.cos(t), 0, dist*math.sin(t), 1}, {0, 0, 0, 1}, {0, 1, 0, 0})
+  projection = perspective(90, wind_width/wind_height, 0.1, 100)
   mvp = mat_mat_mult(projection, view)
 end
 
-function love.draw()
+function draw_center_circle()
   love.graphics.setColor(255, 0, 0)
   love.graphics.circle("fill", wind_width/2, wind_height/2, 2, 5)
   love.graphics.setColor(255, 255, 255)
+end
+
+function love.draw()
+  draw_center_circle()
   for _,v in ipairs(cube) do
     vx = {v[1], v[2], 0, 1}
     v_s = mat_vec_mult(mvp, vx)
-    -- print(v_s[1], v_s[2], v_s[3], v_s[4])
     v_s = vec_scalar_divide(v_s, v_s[4])
-    -- print(v_s[1], v_s[2], v_s[3], v_s[4])
 
     love.graphics.points(wind_width*(v_s[1]+1)/2, wind_height*(v_s[2]+1)/2)
-    print(wind_width*(v_s[1]+1)/2, wind_height*(v_s[2]+1)/2)
-    -- love.graphics.points(wind_width/2 + (-v_s[1])*wind_width, wind_height/2 + (-v_s[2])*wind_height)
   end
 end
 
