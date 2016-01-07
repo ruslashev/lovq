@@ -1,144 +1,63 @@
-function dot_product(vec1, vec2)
-  return vec1[1] * vec2[1]
-  + vec1[2] * vec2[2]
-  + vec1[3] * vec2[3]
-  + vec1[4] * vec2[4]
-end
-
-function mat_vec_mult(mat, vec)
-  return { dot_product(mat[1], vec)
-  , dot_product(mat[2], vec)
-  , dot_product(mat[3], vec)
-  , dot_product(mat[4], vec) }
-end
-
-function mat_mat_mult(mat1, mat2)
-  return { {
-      dot_product(mat1[1], { mat2[1][1], mat2[2][1], mat2[3][1], mat2[4][1] }),
-      dot_product(mat1[1], { mat2[1][2], mat2[2][2], mat2[3][2], mat2[4][2] }),
-      dot_product(mat1[1], { mat2[1][3], mat2[2][3], mat2[3][3], mat2[4][3] }),
-      dot_product(mat1[1], { mat2[1][4], mat2[2][4], mat2[3][4], mat2[4][4] })
-    }, {
-      dot_product(mat1[2], { mat2[1][1], mat2[2][1], mat2[3][1], mat2[4][1] }),
-      dot_product(mat1[2], { mat2[1][2], mat2[2][2], mat2[3][2], mat2[4][2] }),
-      dot_product(mat1[2], { mat2[1][3], mat2[2][3], mat2[3][3], mat2[4][3] }),
-      dot_product(mat1[2], { mat2[1][4], mat2[2][4], mat2[3][4], mat2[4][4] })
-    }, {
-      dot_product(mat1[3], { mat2[1][1], mat2[2][1], mat2[3][1], mat2[4][1] }),
-      dot_product(mat1[3], { mat2[1][2], mat2[2][2], mat2[3][2], mat2[4][2] }),
-      dot_product(mat1[3], { mat2[1][3], mat2[2][3], mat2[3][3], mat2[4][3] }),
-      dot_product(mat1[3], { mat2[1][4], mat2[2][4], mat2[3][4], mat2[4][4] })
-    }, {
-      dot_product(mat1[4], { mat2[1][1], mat2[2][1], mat2[3][1], mat2[4][1] }),
-      dot_product(mat1[4], { mat2[1][2], mat2[2][2], mat2[3][2], mat2[4][2] }),
-      dot_product(mat1[4], { mat2[1][3], mat2[2][3], mat2[3][3], mat2[4][3] }),
-      dot_product(mat1[4], { mat2[1][4], mat2[2][4], mat2[3][4], mat2[4][4] })
-    } }
-end
-
-function vec_length(vec)
-  return math.sqrt(vec[1] * vec[1]
-  + vec[2] * vec[2]
-  + vec[3] * vec[3]
-  + vec[4] * vec[4])
-end
-
-function vec_normalize(vec)
-  if vec_length(vec) == 0 then
-    return { 0, 0, 0, 0 }
-  else
-    return { vec[1] / vec_length(vec)
-    , vec[2] / vec_length(vec)
-    , vec[3] / vec_length(vec)
-    , vec[4] / vec_length(vec) }
-  end
-end
-
-function vec_sub(vec1, vec2)
-  return { vec1[1] - vec2[1]
-  , vec1[2] - vec2[2]
-  , vec1[3] - vec2[3]
-  , vec1[4] - vec2[4] }
-end
-
-function vec_cross(vec1, vec2)
-  return { vec1[2]*vec2[3] - vec2[2]*vec1[3]
-  , vec1[3]*vec2[1] - vec2[3]*vec1[1]
-  , vec1[1]*vec2[2] - vec2[1]*vec1[2]
-  , 0 }
-end
-
-function lookAt(eye, center, up)
-  up = vec_normalize(up)
-  local f = vec_normalize(vec_sub(center, eye))
-  local s = vec_normalize(vec_cross(f, up))
-  local u = vec_cross(s, f)
-  local a = dot_product(s, eye)
-  local b = dot_product(u, eye)
-  local c = dot_product(f, eye)
-  return {
-    {  s[1],  s[2],  s[3],  -a },
-    {  u[1],  u[2],  u[3],  -b },
-    { -f[1], -f[2], -f[3],   c },
-    {     0,     0,     0,   1 }
-  }
-end
-
-function perspective(fovy, aspect, znear, zfar)
-  local f = 1 / math.tan(fovy / 2)
-  local a = (zfar + znear) / (znear - zfar)
-  local b = (2 * zfar * znear) / (znear - zfar)
-  return {
-    { f/aspect, 0,  0,  0 },
-    { 0,        f,  0,  0 },
-    { 0,        0,  a,  b },
-    { 0,        0, -1,  0 }
-  }
-end
-
-function vec_scalar_divide(vec, scalar)
-  return { vec[1] / scalar, vec[2] / scalar, vec[3] / scalar, vec[4] / scalar }
-end
+require "gfx"
 
 local wind_width = 800
 local wind_height = 600
 
-local cube = {
-  {-0.5, -0.5},
-  { 0.5, -0.5},
-  { 0.5,  0.5},
-  {-0.5,  0.5}
+function love.load()
+  love.window.setMode(wind_width, wind_height, { vsync = false })
+  love.graphics.setLineStyle("rough")
+end
+
+local map = {
+  {   0,   0,   0, 100},
+  {   0, 100, 100, 100},
+  { 100, 100, 100,   0},
+  { 100,   0,   0,   0},
+  {  11,  21,  22,  80},
+  {  33,  60,  67,  64},
+  {  82,  17,  72,  80},
 }
 
 local t = 0
-local mvp
-
 function love.update(dt)
   t = t + dt
   if love.keyboard.isDown("q") then
     love.event.push("quit")
   end
-
-  local dist = 1
-  view = lookAt({dist*math.cos(t), 0, dist*math.sin(t), 1}, {0, 0, 0, 1}, {0, 1, 0, 0})
-  projection = perspective(90, wind_width/wind_height, 0.1, 100)
-  mvp = mat_mat_mult(projection, view)
 end
 
-function draw_center_circle()
-  love.graphics.setColor(255, 0, 0)
-  love.graphics.circle("fill", wind_width/2, wind_height/2, 2, 5)
-  love.graphics.setColor(255, 255, 255)
+function hsv2rgb(h, s, v)
+  local i = math.floor(h * 6 + 0.5)
+  local f = h * 6 - i
+  local p = v * (1 - s)
+  local q = v * (1 - f * s)
+  local t = v * (1 - (1 - f) * s)
+
+  local r, g, b
+  local w = i % 6
+  if w == 0 then r = v; g = t; b = p
+  elseif w == 1 then r = q; g = v; b = p;
+  elseif w == 2 then r = p; g = v; b = t;
+  elseif w == 3 then r = p; g = q; b = v;
+  elseif w == 4 then r = t; g = p; b = v;
+  elseif w == 5 then r = v; g = p; b = q;
+  end
+
+  return {r * 255, g * 255, b * 255}
 end
 
 function love.draw()
-  draw_center_circle()
-  for _,v in ipairs(cube) do
-    vx = {v[1], v[2], 0, 1}
-    v_s = mat_vec_mult(mvp, vx)
-    v_s = vec_scalar_divide(v_s, v_s[4])
-
-    love.graphics.points(wind_width*(v_s[1]+1)/2, wind_height*(v_s[2]+1)/2)
+  local step = 1 / #map
+  local h = 0
+  for _,v in ipairs(map) do
+    local sx, sy, ex, ey = v[1], v[2], v[3], v[4]
+    sy = wind_height - sy
+    ey = wind_height - ey
+    sx = sx + 1
+    ex = ex + 1
+    love.graphics.setColor(hsv2rgb(h, 0.6, 1))
+    h = h + step
+    love.graphics.line(sx, sy, ex, ey)
   end
 end
 
