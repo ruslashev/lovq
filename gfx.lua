@@ -100,5 +100,12 @@ function vec_scalar_divide(vec, scalar)
   return { vec[1] / scalar, vec[2] / scalar, vec[3] / scalar, vec[4] / scalar }
 end
 
+function vertex_to_screen(vertex, mvp, wind_width, wind_height)
+  vx = { vertex[1], vertex[2], vertex[3], 1 }
+  vs = mat_vec_mult(mvp, vx)
+  vs = vec_scalar_divide(vs, vs[4])
+  return wind_width * (vs[1] + 1) / 2, wind_height * (vs[2] + 1) / 2
+end
+
 -- vim: et:sw=2
 
