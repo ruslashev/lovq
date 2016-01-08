@@ -4,37 +4,63 @@ require "misc"
 local wind_width = 800
 local wind_height = 600
 
-local tree = {}
+function pop_front(list)
+  local elem = table.remove(list, 1)
+  return elem
+end
+
 function make_bsp(list)
-  local head = list[1]
-  table.remove(list, 1)
-  local k = (head[4] - head[2]) / (head[3] - head[1])
-  local node = { head }
-  if #list ~= 0 then
-    for _,v in ipairs(list) do
+  local root = { list = list }
+  bsp_recursive_function(root)
+  return root
+end
+
+function bsp_recursive_function(branch)
+  if #branch.list ~= 0 then
+    local head = pop_front(branch.list)
+    branch.line = head
+    local k = (head[4] - head[2]) / (head[3] - head[1])
+    while true do
+      if #branch.list == 0 then
+        branch.list = nil
+        break
+      end
+      local v = branch.list[1]
       local sx, sy, ex, ey = v[1], v[2], v[3], v[4]
       local first_in_front = (sy <= k * sx)
       local second_in_front = (ey <= k * ex)
       if first_in_front and second_in_front then
-        node.right = v
-        table.insert(node.right, make_bsp(list))
+        if branch.front == nil then -- same as 'no element in table'
+          branch.front = { list = {} }
+        end
+        table.insert(branch.front.list, v)
       elseif not first_in_front and not second_in_front then
-        node.left = v
-        table.insert(node.left, make_bsp(list))
+        if branch.back == nil then
+          branch.back = { list = {} }
+        end
+        table.insert(branch.back.list, v)
       else
         local k2 = (ey - sy) / (ex - sx)
         local b2 = sy - k * sx
         local x_int = b2 / (k - k2)
         local y_int = k * x_int
-        node.left = {sx, sy, x_int, y_int}
-        node.right = {x_int, y_int, ex, ey}
-        table.insert(node.right, make_bsp(list))
-        table.insert(node.left, make_bsp(list))
+        if branch.front == nil then
+          branch.front = { list = {} }
+        end
+        if branch.back == nil then
+          branch.back = { list = {} }
+        end
+        table.insert(branch.front.list, { x_int, y_int, ex, ey })
+        table.insert(branch.back.list, { sx, sy, x_int, y_int })
       end
+      table.remove(branch.list, 1)
+    end
+    if branch.front ~= nil then
+      bsp_recursive_function(branch.front)
+    elseif branch.back ~= nil then
+      bsp_recursive_function(branch.back)
     end
   end
-  table.insert(tree, node)
-  return node
 end
 
 local bsp
@@ -43,16 +69,21 @@ function love.load()
   love.graphics.setLineStyle("rough")
 
   local map = {
+    -- sx   sy   ex   ey
+    --[[
     {   0,   0,   0, 100},
     {   0, 100, 100, 100},
     { 100, 100, 100,   0},
     { 100,   0,   0,   0},
+    ]]
     {  11,  21,  22,  80},
     {  33,  60,  67,  64},
     {  82,  17,  72,  80},
   }
 
   bsp = make_bsp(map)
+  print(DataDumper(bsp))
+  love.event.push("quit")
 end
 
 local t = 0
@@ -64,7 +95,10 @@ function love.update(dt)
 end
 
 function draw_bsp(bsp)
-  local lines
+  if #bsp == 0 then
+    return {}
+  end
+  local lines = {}
   table.insert(lines, bsp[1])
   table.remove(bsp, 1)
   if not bsp.right then
