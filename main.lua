@@ -54,7 +54,7 @@ function love.update(dt)
 end
 
 function hsv2rgb(h, s, v)
-  local i = math.floor(h * 6 + 0.5)
+  local i = math.floor(h * 6)
   local f = h * 6 - i
   local p = v * (1 - s)
   local q = v * (1 - f * s)
@@ -68,7 +68,7 @@ function hsv2rgb(h, s, v)
   elseif w == 4 then r = t; g = p; b = v;
   elseif w == 5 then r = v; g = p; b = q;
   end
-  return {r * 255, g * 255, b * 255}
+  return { r * 255, g * 255, b * 255 }
 end
 
 function love.draw()
@@ -81,16 +81,10 @@ function love.draw()
     v3x, v3y = vertex_to_screen(v[3], mvp, wind_width, wind_height)
     love.graphics.setColor(hsv2rgb(h, 0.6, 1))
     h = h + step
-    love.graphics.line({ v1x, v1y, v2x, v2y, v3x, v3y })
+    love.graphics.line(v1x, v1y, v2x, v2y)
+    love.graphics.line(v2x, v2y, v3x, v3y)
+    love.graphics.line(v3x, v3y, v1x, v1y)
   end
-  --[[
-  for _,v in ipairs(direct_vertices) do
-    vx = { v[1], v[2], v[3], 1 }
-    v_s = mat_vec_mult(mvp, vx)
-    v_s = vec_scalar_divide(v_s, v_s[4])
-    love.graphics.points(wind_width*(v_s[1]+1)/2, wind_height*(v_s[2]+1)/2)
-  end
-  ]]
 end
 
 -- vim: et:sw=2
