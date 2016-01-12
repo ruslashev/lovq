@@ -20,7 +20,7 @@ function bsp_recursive_function(branch)
     local head = pop_front(branch.list)
     branch.line = head
     local hsx, hsy, hex, hey = head[1], head[2], head[3], head[4]
-    local k = (hey - hsy) / (hsx -
+    local k = (hey - hsy) / (hex - hsx)
     local b = hsy - k * hsx
     while true do
       if #branch.list == 0 then
