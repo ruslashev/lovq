@@ -19,7 +19,9 @@ function bsp_recursive_function(branch)
   if #branch.list ~= 0 then
     local head = pop_front(branch.list)
     branch.line = head
-    local k = (head[4] - head[2]) / (head[3] - head[1])
+    local hsx, hsy, hex, hey = head[1], head[2], head[3], head[4]
+    local k = (hsy - hey) / (hsx - hex)
+    local b = hsy - k * hsx
     while true do
       if #branch.list == 0 then
         branch.list = nil
