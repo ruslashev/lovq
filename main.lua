@@ -20,7 +20,7 @@ function bsp_recursive_function(branch)
     local head = pop_front(branch.list)
     branch.line = head
     local hsx, hsy, hex, hey = head[1], head[2], head[3], head[4]
-    local k = (hsy - hey) / (hsx - hex)
+    local k = (hey - hsy) / (hsx -
     local b = hsy - k * hsx
     while true do
       if #branch.list == 0 then
@@ -29,8 +29,8 @@ function bsp_recursive_function(branch)
       end
       local v = branch.list[1]
       local sx, sy, ex, ey = v[1], v[2], v[3], v[4]
-      local first_in_front = (sy <= k * sx)
-      local second_in_front = (ey <= k * ex)
+      local first_in_front = (sy <= k * sx + b)
+      local second_in_front = (ey <= k * ex + b)
       if first_in_front and second_in_front then
         if branch.front == nil then -- same as 'no element in table'
           branch.front = { list = {} }
